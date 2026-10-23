@@ -6,9 +6,9 @@ Safety-critical ESP32-C3 thermostat for a **marine aquarium** heater (220 V main
 
 > **Safety first:** the higher-priority FreeRTOS control task (sensors → thermostat → relay) runs independently of WiFi / MQTT / web / display work. Network and display failures cannot block it. The device regulates temperature even with no network and no display.
 
-<p align="center"><img src="docs/img/failsafe.jpg" alt="Normal: the controller regulates. Fail-safe: both loads powered, each appliance's own thermostat takes over." width="100%"></p>
+<p align="center"><img src="docs/img/failsafe.jpg" alt="Normal: three probes agree and the controller regulates. 2 of 3: one probe out of the water, the controller regulates on the other two and raises an alarm. Fail-safe: fewer than two healthy probes, both loads powered and each appliance's own thermostat takes over." width="100%"></p>
 
-**Normal**: the controller regulates heater and chiller from three corroborated probes. **Fail-safe** (any untrusted reading, e.g. a probe pulled out of the water): both loads are powered and each appliance's own built-in thermostat takes over.
+**Normal**: three probes agree and the controller regulates heater and chiller. **2 of 3**: one probe is faulty or out of the water; the controller keeps regulating on the two that agree and raises an alarm. **Fail-safe** (fewer than two healthy probes, ADC reference fault or controller down): both loads are powered and each appliance's own built-in thermostat takes over.
 
 ## Features
 
