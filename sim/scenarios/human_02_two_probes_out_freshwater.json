@@ -1,0 +1,24 @@
+{
+  "name": "human_02_two_probes_out_freshwater",
+  "type": "freshwater",
+  "days": 3,
+  "seed": 102,
+  "story": "Planted 120 L community tank, setpoint 27, no chiller. Owner rearranges rocks, lifts the probe bundle (probes 0 and 2 stick together) out of the water and leaves it on the cabinet for 7 h in the evening; probe 1 stays in the water.",
+  "tank": {"liters": 120, "initialTemp": 27.0, "uaWPerK": 6, "lightsW": 40, "lightsOnH": 8, "lightsOffH": 20, "pumpsW": 10},
+  "room": {"meanC": 20, "dailySwingC": 2, "peakHour": 15, "driftCPerDay": 0},
+  "heater": {"watts": 150, "internalSetC": 25.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 0, "internalSetC": 30, "internalHystC": 0.5, "present": false},
+  "firmware": {"setpoint": 27.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": false},
+  "fish": {"idealMin": 24, "idealMax": 28, "stressMin": 22, "stressMax": 30, "lethalMin": 18, "lethalMax": 34, "maxRateCPerH": 1.5},
+  "events": [
+    {"atH": 17, "type": "probe_out_of_water", "probe": 0, "durH": 7, "note": "Probe bundle lifted out together, left on the cabinet (~20 C)"},
+    {"atH": 17, "type": "probe_out_of_water", "probe": 2, "durH": 7, "note": "Second probe of the same bundle"}
+  ],
+  "expect": [
+    "Two of three probes drop toward room temp (~20 C) while probe 1 stays at ~27 C: massive disagreement -> sensorFault -> fail-safe, heater powered and ruled ONLY by its internal thermostat (25.5 C).",
+    "A lone remaining valid probe must NOT be trusted to regulate (no corroboration). BUG if firmware regulates on probe 1 alone, or on the median/mean of the three.",
+    "Tank settles around 25-26 C (below the 27 C setpoint, still in fish ideal band 24-28) for ~7 h, no stress. Probe alarm after 30 s debounce; no undertemp alarm (silent in fail-safe).",
+    "BUG if the heater is switched off (would be the case if firmware trusted the cold probes as 'too hot' misreads or trusts a rising/falling reading) or the two cold probes cause an undertemp alarm.",
+    "After 24 h the probes return: both re-seeded after lockout, fail-safe exits, normal regulation back to 27 C setpoint, no overshoot above 28 C."
+  ]
+}

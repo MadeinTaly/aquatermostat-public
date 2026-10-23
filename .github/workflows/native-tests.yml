@@ -1,0 +1,36 @@
+name: Native unit tests
+
+# Unit test nativi della logica pura (thermostat_logic, sensor_fusion, alarm_logic):
+# la stessa usata dal firmware (single source of truth). Toolchain: gcc + PlatformIO.
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - "src/**"
+      - "test/**"
+      - "platformio.ini"
+      - ".github/workflows/native-tests.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "test/**"
+      - "platformio.ini"
+  workflow_dispatch:
+
+jobs:
+  native-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain (gcc + PlatformIO)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential python3 python3-venv
+          python3 -m venv "$HOME/.venv-pio"
+          "$HOME/.venv-pio/bin/pip" install --no-cache-dir --upgrade pip platformio
+
+      - name: Run native unit tests
+        run: "$HOME/.venv-pio/bin/pio test -e native"

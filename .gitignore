@@ -1,0 +1,35 @@
+.pio
+.vscode
+.DS_Store
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+*.class
+*.pyc
+__pycache__
+.env
+*.swp
+*.swo
+*~
+.project
+.cproject
+*.backup
+
+# log diagnostici locali
+*.log
+
+# toolchain shim locale (gcc/g++/ar -> clang) e build nativa test
+.toolshim/
+build/
+
+# simulatore: build DLL e output
+sim/build/
+sim/out/
+__pycache__/
+tools/lcd_preview/build/
+
+# credenziali locali (copia da src/secrets.example.h)
+src/secrets.h

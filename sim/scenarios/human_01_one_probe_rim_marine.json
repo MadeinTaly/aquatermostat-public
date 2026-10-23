@@ -1,0 +1,24 @@
+{
+  "name": "human_01_one_probe_rim_marine",
+  "type": "marine",
+  "days": 3,
+  "seed": 101,
+  "story": "Saturday maintenance on a 300 L reef. Owner lifts probe 1 out of the water to clean the glass and forgets it hanging on the rim; probes 0 and 2 stay in. It stays out ~14 h until the next morning, then gets put back.",
+  "tank": {"liters": 300, "initialTemp": 25.0, "uaWPerK": 8, "lightsW": 150, "lightsOnH": 9, "lightsOffH": 21, "pumpsW": 40},
+  "room": {"meanC": 21, "dailySwingC": 2, "peakHour": 15, "driftCPerDay": 0},
+  "heater": {"watts": 200, "internalSetC": 24.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 150, "internalSetC": 26.0, "internalHystC": 0.5, "present": true},
+  "firmware": {"setpoint": 25.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": true},
+  "fish": {"idealMin": 24, "idealMax": 27, "stressMin": 22.5, "stressMax": 28.5, "lethalMin": 20, "lethalMax": 31, "maxRateCPerH": 1.0},
+  "events": [
+    {"atH": 16, "type": "probe_out_of_water", "probe": 1, "durH": 14, "note": "Probe 1 forgotten on the rim for 14 h; reads room temp (~21 C) vs 25 C for the other two"},
+    {"atH": 30, "type": "probe_recover", "probe": 1, "note": "Owner notices and puts the probe back in the water"}
+  ],
+  "expect": [
+    "Within seconds of 16 h the probe-1 reading falls (3 min lag) and the rate filter (>0.05 C/s) and/or the >0.4 C disagreement exclude it: sensorFault, fail-safe, BOTH loads powered, each governed by its internal thermostat only.",
+    "A probe fault alarm is raised after the 30 s debounce (MQTT/HA). No overtemp/undertemp alarm (silent in fail-safe).",
+    "Tank must stay roughly 24-26.5 C for the 14 h (heater internal 24.5, chiller internal 26); fish never leave ideal band by more than ~0.5 C. No heater/chiller fight (heater set < chiller set).",
+    "BUG if firmware keeps regulating with the 2 good probes as if healthy (2 agreeing probes are not enough, no third corroborating) or uses the median including the 21 C probe (would run heater hard and overheat toward internalSet only, but would be wrongly trusted).",
+    "After the probe returns (~30 h): fail-safe exit is rechecked every 30 s and after the jump lockout (5 min) the probe is re-seeded; normal control resumes and the probe alarm clears. BUG if fail-safe sticks past ~6 min, or if it chatters."
+  ]
+}

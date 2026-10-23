@@ -1,0 +1,23 @@
+{
+  "name": "human_05_vacation_heat_off_forgotten_fresh",
+  "type": "freshwater",
+  "days": 4,
+  "seed": 105,
+  "story": "Freshwater tropical tank, setpoint 27. Owner disables heating from the web UI to 'test something', forgets, and leaves for a winter weekend with the house heating off (room drops to ~11 C). The firmware obeys the user's toggle: heater idle in normal operation.",
+  "tank": {"liters": 80, "initialTemp": 27.0, "uaWPerK": 5, "lightsW": 30, "lightsOnH": 9, "lightsOffH": 19, "pumpsW": 8},
+  "room": {"meanC": 18, "dailySwingC": 1.5, "peakHour": 15, "driftCPerDay": 0},
+  "heater": {"watts": 100, "internalSetC": 25.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 0, "internalSetC": 30, "internalHystC": 0.5, "present": false},
+  "firmware": {"setpoint": 27.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": false},
+  "fish": {"idealMin": 24, "idealMax": 28, "stressMin": 22, "stressMax": 30, "lethalMin": 18, "lethalMax": 34, "maxRateCPerH": 1.5},
+  "events": [
+    {"atH": 4, "type": "set_config", "enableHeat": false, "note": "Owner disables heating to test and forgets"},
+    {"atH": 20, "type": "room_offset", "deltaC": -7, "durH": 60, "note": "Vacation, house heating off, cold snap: room ~11 C"}
+  ],
+  "expect": [
+    "Probes are all valid and agreeing, so no sensorFault and NO fail-safe: enableHeat=false is respected in normal operation, heater stays off (this is user intent, not a firmware bug).",
+    "Tank cools toward room (~11-13 C) over the days: below 22.5 C the undertemp alarm (aquatermostat/alarm/undertemp + HA) MUST fire (reading trusted) and stay active; it is the only protection. Model should show fish dropping into stress (<22) then lethal (<18) in about a day and a half.",
+    "BUG if no undertemp alarm fires, or the alarm flaps/clears while the tank keeps cooling, or the heater turns on while enableHeat=false in normal control.",
+    "Report as a design observation: the toggle has no auto re-enable timeout; suggest it as a hazard since the cold-water failure is silent apart from the notification."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "human_06_vacuum_topoff_typo_setpoint_marine",
+  "type": "marine",
+  "days": 3,
+  "seed": 106,
+  "story": "Marine tank, setpoint 25. Owner tops off with cold RO water, later the cleaner unplugs the controller while vacuuming (approximated with a reboot), then the owner types setpoint 20 instead of 25 and corrects it the next day. Sun on the tank in the afternoon adds heat.",
+  "tank": {"liters": 300, "initialTemp": 25.0, "uaWPerK": 8, "lightsW": 150, "lightsOnH": 9, "lightsOffH": 21, "pumpsW": 40},
+  "room": {"meanC": 22, "dailySwingC": 2, "peakHour": 15, "driftCPerDay": 0},
+  "heater": {"watts": 200, "internalSetC": 24.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 150, "internalSetC": 26.0, "internalHystC": 0.5, "present": true},
+  "firmware": {"setpoint": 25.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": true},
+  "fish": {"idealMin": 24, "idealMax": 27, "stressMin": 22.5, "stressMax": 28.5, "lethalMin": 20, "lethalMax": 31, "maxRateCPerH": 1.0},
+  "events": [
+    {"atH": 6, "type": "water_change", "liters": 15, "tempC": 14, "note": "Owner tops off with cold RO water straight from the tap/storage (15 L at 14 C)"},
+    {"atH": 11, "type": "controller_reboot", "note": "Cleaner unplugs the controller while vacuuming and replugs it later. Approximation: real behaviour would be both NC relays resting and both loads ON via internal thermostats for the period; power_outage would wrongly cut all loads"},
+    {"atH": 22, "type": "set_config", "setpoint": 20, "note": "Owner types 20 instead of 25; firmware clamps to the 20-30 range, so 20 is accepted"},
+    {"atH": 38, "type": "room_offset", "deltaC": 4, "durH": 4, "note": "Next afternoon sun hits the tank"},
+    {"atH": 46, "type": "set_config", "setpoint": 25, "note": "Owner notices the wrong setpoint and restores 25"}
+  ],
+  "expect": [
+    "Cold top-off (about 0.5 K step on 300 L): all probes drop together and agree, so no fault; the rate stays below 0.05 C/s per probe, heater brings the tank back to 25 C without overshoot above 26 C and no chiller activation.",
+    "Reboot at 11 h: relays go to rest (both loads ON) during boot, control resumes quickly with a trusted reading; BUG if the heater is held off after reboot or fail-safe persists beyond the initial probe seeding window.",
+    "Setpoint 20 is legitimate for the firmware: heater stops, tank slowly cools toward ~20-22 C (UA 8 W/K, room 22) and the chiller might engage only if tank > 20 + coolDeadband; no alarm until <22.5 C when the undertemp alarm MUST fire (trusted reading). Fish should reach stress below 22.5 C only if it cools that far in ~24 h; report it.",
+    "Sun at 38 h with setpoint 20: chiller is active (tank above setpoint plus deadband) and must keep it from overshooting; with setpoint restored to 25 the heater resumes and the tank recovers to 25 C by the end. BUG if the heater and chiller are both on at once in normal operation, or setpoint changes are not clamped to 20..30."
+  ]
+}

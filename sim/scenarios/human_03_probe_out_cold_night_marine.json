@@ -1,0 +1,22 @@
+{
+  "name": "human_03_probe_out_cold_night_marine",
+  "type": "marine",
+  "days": 3,
+  "seed": 103,
+  "story": "Winter, unheated flat at night (room 14-17 C). Owner takes probe 2 out at 22:00 to move it, falls asleep and leaves it on the shelf until 07:00. It reads ~15 C while the tank is 25 C: the 'too cold' failure mode, where a firmware trusting that probe would cook the fish.",
+  "tank": {"liters": 200, "initialTemp": 25.0, "uaWPerK": 7, "lightsW": 100, "lightsOnH": 9, "lightsOffH": 21, "pumpsW": 30},
+  "room": {"meanC": 16, "dailySwingC": 3, "peakHour": 15, "driftCPerDay": 0},
+  "heater": {"watts": 250, "internalSetC": 24.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 150, "internalSetC": 26.0, "internalHystC": 0.5, "present": true},
+  "firmware": {"setpoint": 25.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": true},
+  "fish": {"idealMin": 24, "idealMax": 27, "stressMin": 22.5, "stressMax": 28.5, "lethalMin": 20, "lethalMax": 31, "maxRateCPerH": 1.0},
+  "events": [
+    {"atH": 22, "type": "probe_out_of_water", "probe": 2, "durH": 9, "note": "Probe 2 out of water on a cold night, reads ~15-17 C vs 25 C tank"}
+  ],
+  "expect": [
+    "Probe 2 falls fast (rate filter / >0.4 C disagreement): sensorFault, fail-safe, both loads powered; heater held by internal 24.5 C thermostat, chiller internal 26 C idle (room is cold, tank cannot reach 26).",
+    "Tank stays 24-25.5 C all night. Max overshoot above 26 C = BUG. The heater must NOT run unbounded: the firmware must not treat the cold probe as the true temperature (that would only be harmless because the internal thermostat caps it, but regulation must still not be done on the bad reading).",
+    "Probe alarm fires after 30 s; no undertemp alarm (reading untrusted, silent in fail-safe) even though the probe reads <22.5 C. BUG if an undertemp alarm fires from the out-of-water probe.",
+    "At 07:00 (31 h) the probe is replaced and control resumes within about 5-6 min (lockout 5 min + 30 s recheck) with setpoint 25 C; no heater/chiller fight, no oscillation."
+  ]
+}

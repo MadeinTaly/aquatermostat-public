@@ -1,0 +1,24 @@
+{
+  "name": "human_04_probe_out_hot_afternoon_marine",
+  "type": "marine",
+  "days": 3,
+  "seed": 104,
+  "story": "Summer heatwave, apartment 30-33 C in the afternoon. Owner pulls probe 0 out of the water at 13:00 to change a nutrient test and leaves it on the sunny sill; it reads ~32 C while the tank is 25-26 C. Later the sun hits the tank for a few hours.",
+  "tank": {"liters": 250, "initialTemp": 25.5, "uaWPerK": 9, "lightsW": 160, "lightsOnH": 10, "lightsOffH": 22, "pumpsW": 40},
+  "room": {"meanC": 29, "dailySwingC": 4, "peakHour": 16, "driftCPerDay": 0},
+  "heater": {"watts": 200, "internalSetC": 24.5, "internalHystC": 0.5, "present": true},
+  "chiller": {"watts": 200, "internalSetC": 26.0, "internalHystC": 0.5, "present": true},
+  "firmware": {"setpoint": 25.0, "hysteresis": 0.5, "coolDeadband": 1.0, "enableHeat": true, "enableCool": true},
+  "fish": {"idealMin": 24, "idealMax": 27, "stressMin": 22.5, "stressMax": 28.5, "lethalMin": 20, "lethalMax": 31, "maxRateCPerH": 1.0},
+  "events": [
+    {"atH": 13, "type": "probe_out_of_water", "probe": 0, "durH": 6, "note": "Probe 0 out of water on a hot afternoon, reads ~30-33 C vs ~26 C tank"},
+    {"atH": 38, "type": "room_offset", "deltaC": 3, "durH": 4, "note": "Next day afternoon: direct sun on the tank / AC off"}
+  ],
+  "expect": [
+    "Probe 0 climbs quickly toward room temperature (~30+ C): rate filter excludes it and the 0.4 C disagreement triggers sensorFault -> fail-safe, both loads powered, regulated only by their internal thermostats.",
+    "In fail-safe the chiller internal thermostat (26 C) is the only cooling. Tank must be held ~25-26.5 C; with room ~31 C and 160 W lights a 200 W chiller should cope. Max tank temp > 28.5 C = BUG/marginal capacity (report it).",
+    "Heater internal 24.5 C stays off (tank above it): heater/chiller must not fight.",
+    "No overtemp alarm raised from the hot out-of-water probe (reading untrusted, alarms silent in fail-safe). BUG if overtemp (>27.5) fires on the bad probe, or if the firmware, trusting the hot probe, switched the heater OFF/chiller ON as the only decision (cooling is right, but regulating on an untrusted reading is the bug).",
+    "Probe returns at 19 h: recovery after lockout + 30 s recheck; normal control, setpoint 25 C. Sun event at 38 h is ordinary overheating handled by chiller within normal control; no spurious fault."
+  ]
+}
