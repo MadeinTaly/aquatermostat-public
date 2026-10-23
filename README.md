@@ -246,7 +246,7 @@ The firmware uses a fixed trust window of **12–44 °C**. Fewer than 2 healthy 
 
 ## Building & Uploading
 
-First copy `src/secrets.example.h` to `src/secrets.h` and fill in your WiFi and MQTT credentials (the build stops with a clear error if it is missing).
+First create `src/secrets.h` (gitignored; the build stops with a clear error if it is missing): either copy `src/secrets.example.h` and fill in your WiFi and MQTT credentials, or generate it from a `.env` file with `python tools/secrets_from_env.py path/to/.env` (variables `AQUATERMOSTAT_WIFI_SSID`, `AQUATERMOSTAT_WIFI_PASSWORD`, `AQUATERMOSTAT_AP_PASSWORD`, `AQUATERMOSTAT_MQTT_HOST`, `MQTT_USER`, `MQTT_PASSWORD`).
 
 PlatformIO (Windows / PowerShell):
 
